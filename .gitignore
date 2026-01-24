@@ -1,0 +1,16 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+
+# Local files
+.DS_Store
+*.log
+
+# Kubernetes
+*.kubeconfig
+
+# OS
+Thumbs.db
+
