@@ -1,4 +1,4 @@
-name: CI - Build and Push Docker Image to ECR
+name: CI-CD - Build, Push, Deploy
 
 on:
   push:
@@ -6,11 +6,12 @@ on:
       - main
 
 jobs:
-  build:
+  ci:
+    name: Build and Push Image
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
+    - name: Checkout code
       uses: actions/checkout@v4
 
     - name: Configure AWS credentials
@@ -18,25 +19,44 @@ jobs:
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ secrets.AWS_REGION }}
+        aws-region: ap-south-1
 
-    - name: Login to Amazon ECR
+    - name: Login to ECR
       run: |
-        aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
+        aws ecr get-login-password --region ap-south-1 \
         | docker login --username AWS \
-        --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+          --password-stdin 990403209400.dkr.ecr.ap-south-1.amazonaws.com
 
-    - name: Build Docker image
+    - name: Build & Push Image
       run: |
         docker build -t ci-demo-app ./app
+        docker tag ci-demo-app:latest 990403209400.dkr.ecr.ap-south-1.amazonaws.com/ci-demo-app:latest
+        docker push 990403209400.dkr.ecr.ap-south-1.amazonaws.com/ci-demo-app:latest
 
-    - name: Tag Docker image
-      run: |
-        docker tag ci-demo-app:latest \
-        ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/ci-demo-app:latest
+  cd:
+    name: Deploy to EKS
+    needs: ci
+    runs-on: ubuntu-latest
 
-    - name: Push Docker image to ECR
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ap-south-1
+
+    - name: Update kubeconfig
       run: |
-        docker push \
-        ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/ci-demo-app:latest
+        aws eks update-kubeconfig \
+          --region ap-south-1 \
+          --name bhushan-eks-cluster
+
+    - name: Deploy to Kubernetes
+      run: |
+        kubectl apply -f nginx-deployment.yaml
+        kubectl rollout status deployment nginx-deployment
 
