@@ -1,62 +1,43 @@
-name: CI-CD pipeline - Build, Push, Deploy
+name: CI - Build and Push Docker Image to ECR
 
 on:
   push:
     branches:
       - main
 
+env:
+  AWS_REGION: ap-south-1
+  AWS_ACCOUNT_ID: 990403209400
+  ECR_REPO: ci-demo-app
+
 jobs:
-  ci:
-    name: Build and Push Image
+  build-and-push:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ap-south-1
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
 
-    - name: Login to ECR
-      run: |
-        aws ecr get-login-password --region ap-south-1 \
-        | docker login --username AWS \
-          --password-stdin 990403209400.dkr.ecr.ap-south-1.amazonaws.com
+      - name: Login to Amazon ECR
+        run: |
+          aws ecr get-login-password --region $AWS_REGION \
+          | docker login --username AWS \
+          --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 
-    - name: Build & Push Image
-      run: |
-        docker build -t ci-demo-app ./app
-        docker tag ci-demo-app:latest 990403209400.dkr.ecr.ap-south-1.amazonaws.com/ci-demo-app:latest
-        docker push 990403209400.dkr.ecr.ap-south-1.amazonaws.com/ci-demo-app:latest
+      - name: Build Docker image
+        run: |
+          docker build \
+            -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:${{ github.sha }} \
+            ./app
 
-  cd:
-    name: Deploy to EKS
-    needs: ci
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ap-south-1
-
-    - name: Update kubeconfig
-      run: |
-        aws eks update-kubeconfig \
-          --region ap-south-1 \
-          --name bhushan-eks-cluster
-
-    - name: Deploy to Kubernetes
-      run: |
-        kubectl apply -f nginx-deployment.yaml
-        kubectl rollout status deployment nginx-deployment
+      - name: Push Docker image
+        run: |
+          docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:${{ github.sha }}
 
