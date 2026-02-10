@@ -13,7 +13,22 @@ spec:
         app: nginx
     spec:
       containers:
+    
       - name: nginx
-        image: nginx:latest
+        image: 990403209400.dkr.ecr.ap-south-1.amazonaws.com/ci-demo-app:6da4d5deefe07d7a80e760507845830f7f7a0f01
         ports:
         - containerPort: 80
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
+
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 15
+          periodSeconds: 10
+
