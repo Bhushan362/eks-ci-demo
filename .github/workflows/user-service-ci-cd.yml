@@ -34,10 +34,10 @@ jobs:
         run: |
           docker build -t user-service:latest ./user-service
 
-- name: Tag Docker image
-  run: |
-    docker tag user-service:latest \
-    $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/user-service:latest
+      - name: Tag Docker image
+        run: |
+         docker tag user-service:latest \
+          $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/user-service:latest
 
       - name: Push Docker image to ECR
         run: |
