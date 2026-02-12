@@ -8,7 +8,8 @@ on:
 env:
   AWS_REGION: ap-south-1
   AWS_ACCOUNT_ID: 990403209400
-  EKS_CLUSTER_NAME:bhushan-eks-cluster
+  EKS_CLUSTER_NAME: bhushan-eks-cluster
+
 jobs:
   build-test:
     runs-on: ubuntu-latest
