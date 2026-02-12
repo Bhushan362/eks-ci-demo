@@ -38,7 +38,7 @@ jobs:
         run: |
           docker push \
           $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/user-service:latest
-       
+
      - name: Update kubeconfig
         run: |
           aws eks update-kubeconfig \
