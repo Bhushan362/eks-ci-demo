@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: user-service
-          image: 990403209400.dkr.ecr.ap-south-1.amazonaws.com/user-service:1.0
+          image: 990403209400.dkr.ecr.ap-south-1.amazonaws.com/user-service:latest
 
           ports:
             - containerPort: 3000
