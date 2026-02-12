@@ -10,7 +10,7 @@ env:
   AWS_ACCOUNT_ID: 990403209400
 
 jobs:
-  test-ecr:
+  build-test:
     runs-on: ubuntu-latest
 
     steps:
@@ -29,4 +29,8 @@ jobs:
           aws ecr get-login-password --region $AWS_REGION \
           | docker login --username AWS --password-stdin \
             $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+
+      - name: Build Docker image
+        run: |
+          docker build -t user-service:latest ./user-service
 
