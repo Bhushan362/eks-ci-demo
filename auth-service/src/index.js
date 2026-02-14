@@ -29,5 +29,6 @@ app.post("/login", async (req, res) => {
 
 app.listen(4000, () => {
   console.log("Auth service running on port 4000");
+  console.log("Auth");
 });
 
