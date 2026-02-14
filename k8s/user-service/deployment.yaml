@@ -15,9 +15,15 @@ spec:
       containers:
         - name: user-service
           image: 990403209400.dkr.ecr.ap-south-1.amazonaws.com/user-service:latest
-
           ports:
             - containerPort: 3000
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "300m"
+              memory: "256Mi"
           readinessProbe:
             httpGet:
               path: /health
